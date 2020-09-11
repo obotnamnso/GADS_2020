@@ -1,0 +1,50 @@
+LAB 3: Google Cloud Fundamentals: Getting Started with Deployment Manager and Cloud Monitoring
+
+Overview: In this lab, you create a deployment using Deployment Manager and use it to maintain a consistent state of your deployment. You will also view resource usage in a VM instance using Cloud Monitoring.
+
+Objectives:
+In this lab, you will learn how to perform the following tasks:
+
+	Create a Deployment Manager deployment.
+
+	Update a Deployment Manager deployment.
+
+	View the load on a VM instance using Cloud Monitoring.
+Tasks:
+1. Create a Deployment Manager deployment
+	-click the Open Cloud Shell button then click continue.
+	-place the zone that Qwiklabs assigned you to into an environment variable
+		export MY_ZONE=us-central1-a
+	-At the Cloud Shell prompt, download an editable Deployment Manager template:
+		gsutil cp gs://cloud-training/gcpfcoreinfra/mydeploy.yaml mydeploy.yaml
+	-use the sed command to replace the PROJECT_ID placeholder string with your Google Cloud Platform project ID using this command:
+		sed -i -e "s/PROJECT_ID/$DEVSHELL_PROJECT_ID/" mydeploy.yaml
+	-use the sed command to replace the ZONE placeholder string with your Google Cloud Platform zone using this command:
+		sed -i -e "s/ZONE/$MY_ZONE/" mydeploy.yaml
+	-View the mydeploy.yaml file, with your modifications, with this command:
+		cat mydeploy.yaml
+	-Note: Be sure that the zone that is named on the zone: and machineType: lines in your file matches the zone to which Qwiklabs assigned you.
+	-Build a deployment from the template:
+		gcloud deployment-manager deployments create my-first-depl --config mydeploy.yaml
+	-Result: With the deployment operation is complete, the gcloud command displays a list of the resources named in the template and their current state.
+	-Confirm that the deployment was successful. In the GCP Console, on the Navigation menu by clicking on Compute Engine > VM instances.
+2. Update a Deployment Manager deployment
+	- Launch the nano text editor to edit the mydeploy.yaml file on the cloud shell:
+		nano mydeploy.yaml
+	- Find the line that sets the value of the startup script, value: "apt-get update", and edit it so that it looks like this:
+		      value: "apt-get update; apt-get install nginx-light -y"
+	- Press Ctrl+O and then press Enter to save your edited file.
+	- Press Ctrl+X to exit the nano text editor.
+	- Enter this command to cause Deployment Manager to update your deployment to install the new startup script at cloud shell:
+		gcloud deployment-manager deployments update my-first-depl --config mydeploy.yaml
+	- Note: Wait for the gcloud command to display a message confirming that the update operation was completed successfully.
+	- Confirm that the startup script has been updated to the value you declared in your Deployment Manager template.
+3. View the Load on a VM using Cloud Monitoring
+	- on the Navigation menu (Navigation menu), click Compute Engine > VM instances.
+	- To open a command prompt on the my-vm instance, click SSH in its row in the VM instances list.
+		ssh my-vm
+	- In the ssh session on my-vm, execute this command to create a CPU load:
+		dd if=/dev/urandom | gzip -9 >> /dev/null &	
+	- This Linux pipeline forces the CPU to work on compressing a continuous stream of random data
+	- Terminate your workload generator. Return to your ssh session on my-vm and enter this command:
+		kill %1
